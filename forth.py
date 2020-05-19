@@ -127,6 +127,8 @@ def rename(t,s):
 def sub(x,t,y):
     if y == Bot():
         return y
+    elif y[0] == "T":
+        return y
     elif y[0] == "TV":
         [_,n] = y
         if x == n:
@@ -143,13 +145,79 @@ def sub(x,t,y):
         raise ValueError("Bad type {}".format(y))
 
 
+# Unify a list of constraints
+# unify :: [(Type, Type)] -> [(String, Type)] -> [(String, Type)]
+def unify(tps,s):
+    if tps == []:
+        return s # get >>= pure
+    else:
+        print("got\n{}\n{}\n".format(tps[0][0],tps[0][1]))
+        (l,r) = tps[0]
+        rest = tps[1:]
+        if l == r:
+            return unify(rest, s)
+        elif l[0] == r[0] == ":-":
+            [_,tx,ty] = l
+            [_,ux,uy] = r
+            rest = [(tx,ux),(ty,uy)] + rest
+            return unify(rest,s)
+        elif l[0] == r[0] == ":->":
+            [_,tx,ty] = l
+            [_,ux,uy] = r
+            rest = [(tx,ux),(ty,uy)] + rest
+            return unify(rest,s)
+        elif l[0] == r[0] == "T":
+            if l[1] == r[1]:
+                return unify(rest,s)
+            else:
+                raise ValueError("Failed to unify {} and {}".format(l[1], r[1]))
+        elif l[0] == r[0] == "TV":
+            if l[1] == r[1]:
+                return unify(rest,s)
+        elif l[0] == "TV":
+            [_,x] = l
+            t = r
+            if occurs(x,t):
+                raise ValueError("Cannot construct the infinite type {} ~ {}".format(x,t))
+            else:
+                s = [(x,t)] + s
+                w = [(sub(x,t,v[0]),sub(x,t,v[1])) for v in rest]
+                return(unify(w,s))
+        elif r[0] == "TV":
+            w = [(r,l)] + rest
+            unify(w,s)
+        else:
+            raise ValueError("Unification failed {}".format(tps))
+
+# Occurs check
+def occurs(x,t):
+    if t == Bot():
+        return False
+    elif t[0] == ":-":
+        [_,a,b] = t
+        return occurs(x,a) or occurs(x,b)
+    elif t[0] == ":->":
+        [_,a,b] = t
+        return occurs(x,a) or occurs(x,b)
+    elif t[0] == "TV":
+        return x == t[1] 
+def solve(gamma,x):
+    global cs
+    # ty is the type to solve for
+    ty = gather(gamma,x)
+    res = unify(cs,[])
+    return res
+    
+
 print(gensym())
 print(newTV())
 dupType = TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s"))))
 print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
 print("freeVars(dupType): ", freeVars(dupType))
 print("Rename: ", rename(dupType,freeVars(dupType)))
-# print("Gather: ", gather([("dup", dupType)],Cmd("dup",LitI(3,Done()))))
-gather([("dup", dupType)],LitI(3,Done()))
-print("Constraints after gathering: ", cs)
-
+print("Gather: ", gather([("dup", dupType)],Cmd("dup",LitI(3,Done()))))
+# print("Gather: ", gather([("dup", dupType)],LitI(3,Done())))
+print("Constraints after gathering:")
+for i in cs:
+    print(i)
+print(unify(cs,[]))
