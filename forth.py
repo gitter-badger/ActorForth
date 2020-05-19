@@ -234,8 +234,8 @@ dupType = TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s"))))
 addType = TArr(Stack(T("Int"),Stack(T("Int"),TV("s"))),
                Stack(T("Int"),TV("s")))
 dropType = TArr(Stack(TV("a"),TV("s")),TV("s"))
-
-stdEnv = [("dup", dupType), ("add",addType),("drop",dropType)]
+swapType = TArr(Stack(TV("a"),Stack(TV("b"),TV("s"))),Stack(TV("b"),Stack(TV("a"),TV("s"))))
+stdEnv = [("dup", dupType), ("add",addType),("drop",dropType),("swap",swapType)]
 
 # print("Lookup: {}".format(lookup("add", stdEnv)))
 # print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
@@ -252,4 +252,5 @@ stdEnv = [("dup", dupType), ("add",addType),("drop",dropType)]
 
 ex1 = Cmd("add",LitI(5,LitI(3,Done())))
 ex2 = Cmd("dup",LitI(5,Done()))
-print("Final result: ", solve(stdEnv,ex2))
+ex3 = Cmd("swap",LitB(True,LitI(3,Done())))
+print("Final result: ", solve(stdEnv,ex3))
