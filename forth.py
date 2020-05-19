@@ -152,12 +152,13 @@ def unify(tps,s):
     if tps == []:
         return s # get >>= pure
     else:
-        print("\nUnifying\n{}\n{}".format(tps[0][0],tps[0][1]))
         (l,r) = tps[0]
+        
+        print("\nUnifying\n{}\n{}".format(l,r))
+        print("Solutions:{}".format(s))
+        print("List:{}\n".format(tps))
         rest = tps[1:]
-        if l == r:
-            return unify(rest, s)
-        elif l[0] == r[0] == ":-":
+        if l[0] == r[0] == ":-":
             [_,tx,ty] = l
             [_,ux,uy] = r
             rest = [(tx,ux),(ty,uy)] + rest
@@ -172,7 +173,7 @@ def unify(tps,s):
                 return unify(rest,s)
             else:
                 raise ValueError("Failed to unify {} and {}".format(l[1], r[1]))
-        elif l[0] == r[0] == "TV":
+        elif l[0] == "TV" and r[0] == "TV":
             if l[1] == r[1]:
                 return unify(rest,s)
         elif l[0] == "TV":
@@ -186,7 +187,7 @@ def unify(tps,s):
                 return(unify(w,s))
         elif r[0] == "TV":
             w = [(r,l)] + rest
-            unify(w,s)
+            return(unify(w,s))
         else:
             raise ValueError("Unification failed {}".format(tps))
 
@@ -210,18 +211,18 @@ def solve(gamma,x):
     return res
     
 
-print(gensym())
-print(newTV())
 dupType = TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s"))))
 addType = TArr(Stack(T("Int"),Stack(T("Int"),TV("s"))),
                Stack(T("Int"),TV("s")))
-stdEnv = [("dup", dupType), ("add",addType)]
-print("Lookup: {}".format(lookup("add", stdEnv)))
-print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
-print("freeVars(dupType): ", freeVars(dupType))
-print("Rename: ", rename(dupType,freeVars(dupType)))
+dropType = TArr(Stack(TV("a"),TV("s")),TV("s"))
 
-print("Gather: ", gather(stdEnv,LitI(3,Done())))
+stdEnv = [("dup", dupType), ("add",addType),("drop",dropType)]
+# print("Lookup: {}".format(lookup("add", stdEnv)))
+# print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
+# print("freeVars(dupType): ", freeVars(dupType))
+# print("Rename: ", rename(dupType,freeVars(dupType)))
+
+print("Gather: ", gather(stdEnv,Cmd("dup",LitI(5,Done()))))
 # print("Gather: ", gather(stdEnv,Cmd("dup",LitI(3,Done()))))
 # print("Gather: ", gather(stdEnv,Cmd("add", LitI(5,LitI(3,Done())))))
 
