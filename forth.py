@@ -21,19 +21,24 @@ def Func(p1,p2):
     return ["Func", p1, p2]
 
 
-# Type
+# Type syntax
+# Saturated type (Int, Bool, etc.)
 def T(s):
     return ["T",s]
 
+# Stack with head and tail
 def Stack(t1,t2):
     return [":-",t1,t2]
 
+# Function type
 def TArr(t1,t2):
     return [":->",t1,t2]
 
+# Type variable
 def TV(s):
     return ["TV", s]
 
+# Bottom of stack
 def Bot():
     return 'Bot'
 
@@ -60,7 +65,8 @@ def newTV():
 def lookup(x,l):
     return l[[v[0] for v in l].index(x)][1]
 
-# gather :: Set (String, Type) -> Pgrm -> Gather Type
+# Gather the constraints on a program
+# gather :: [(String, Type)] -> Pgrm -> Gather Type
 def gather(gamma,pgrm):
     global cs, i
     if pgrm == Done():
@@ -75,24 +81,33 @@ def gather(gamma,pgrm):
         return gatherLit("Bool",gamma,p)
     elif pgrm[0] == "Cmd":
         [_,s,p] = pgrm
+        # Lookup the function type.
         tf = lookup(s,gamma)
+        # Get all the free type variables from the function type.
         fv = freeVars(tf)
+        # Rename all free variables in the function type.
         tf = rename(tf,fv)
+        # Gather constraints for the rest of the program.
         a = gather(gamma,p)
         b = newTV()
+        # Add a constraint, the function type must take a to b.
         cs = [(tf, TArr(a,b))] + cs
+        # The whole command returns something of type b.
         return b
 
+# Literal cases
 def gatherLit(t,gamma,p):
     global cs,i
+    # Gather constraints for the rest of the program.
     s = gather(gamma,p)
     tl = newTV()
+    # The result type.
     res = Stack(T(t),s)
     cs = [(tl, res)] + cs
     return res
 
 # Get all free type variables in a type.
-# freeVars :: Type -> [String]
+# freeVars :: Type -> Set String
 def freeVars(t):
     return(f(t,set()))
 
@@ -202,9 +217,12 @@ def occurs(x,t):
         return x == t[1] 
 
 def solve(gamma,x):
-    global cs
+    global cs,i
+    i = 0
+    cs = []
     # ty is the type to solve for
     ty = gather(gamma,x)
+    # res contains the solved constraints
     res = unify(cs,[])
     print("Unification result: {}".format(res))
     for i,j in res:
