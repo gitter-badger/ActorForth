@@ -113,7 +113,7 @@ def f(t,l):
         [_,a,b] = t
         return f(b,(f(a,l)))
     else:
-        raise ValueError("Incorrect type {}".format(t))
+        return l
 
 def rename(t,s):
     acc = {}
@@ -121,17 +121,18 @@ def rename(t,s):
         acc[i] = newTV()
     for i,j in acc.items():
         t = sub(i,j,t)
-        # print(t)
     return t
 
+# Substitute type variable x for t in y
+# In math notation, sub (x, t, y) = y[t/x]
 def sub(x,t,y):
     if y == Bot():
         return y
     elif y[0] == "T":
         return y
     elif y[0] == "TV":
-        [_,n] = y
-        if x == n:
+        [_,xp] = y
+        if x == xp:
             return t
         else:
             return y
@@ -151,7 +152,7 @@ def unify(tps,s):
     if tps == []:
         return s # get >>= pure
     else:
-        print("got\n{}\n{}\n".format(tps[0][0],tps[0][1]))
+        print("\nUnifying\n{}\n{}".format(tps[0][0],tps[0][1]))
         (l,r) = tps[0]
         rest = tps[1:]
         if l == r:
@@ -212,12 +213,19 @@ def solve(gamma,x):
 print(gensym())
 print(newTV())
 dupType = TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s"))))
+addType = TArr(Stack(T("Int"),Stack(T("Int"),TV("s"))),
+               Stack(T("Int"),TV("s")))
+stdEnv = [("dup", dupType), ("add",addType)]
+print("Lookup: {}".format(lookup("add", stdEnv)))
 print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
 print("freeVars(dupType): ", freeVars(dupType))
 print("Rename: ", rename(dupType,freeVars(dupType)))
-print("Gather: ", gather([("dup", dupType)],Cmd("dup",LitI(3,Done()))))
-# print("Gather: ", gather([("dup", dupType)],LitI(3,Done())))
+
+print("Gather: ", gather(stdEnv,LitI(3,Done())))
+# print("Gather: ", gather(stdEnv,Cmd("dup",LitI(3,Done()))))
+# print("Gather: ", gather(stdEnv,Cmd("add", LitI(5,LitI(3,Done())))))
+
 print("Constraints after gathering:")
 for i in cs:
     print(i)
-print(unify(cs,[]))
+print("Unification result: ", unify(cs,[]))

@@ -176,7 +176,7 @@ unify ((TV x, t):rest) =
            (unwords ["Cannot construct the infinite type", x, "~", show t])
     else do
       modify ((x, t) :)
-      unify (join (***) (sub (x, t)) <$> rest)
+      unify ((\(a,b) -> (sub (x, t) a, sub (x,t) b)) <$> rest)
   where
     occurs (t :-> u) = occurs t || occurs u
     occurs (t :- u) = occurs t || occurs u
