@@ -16,7 +16,6 @@ data Pgrm
   | LitB Bool Pgrm
   | Cmd String Pgrm
   | Func Pgrm Pgrm
-  | App Pgrm
   deriving (Show, Eq)
 
 assembleP p = foldl (&) Done p
