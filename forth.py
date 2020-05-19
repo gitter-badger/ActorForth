@@ -56,13 +56,10 @@ def newTV():
     s = gensym()
     return ['TV', s]
 
-ex1 = Cmd("add",LitI(5,LitI(3,Done())))
 
 def lookup(x,l):
     return l[[v[0] for v in l].index(x)][1]
 
-# print(ex1)
-# print(Cmd("add",LitI(5,Done())))
 # gather :: Set (String, Type) -> Pgrm -> Gather Type
 def gather(gamma,pgrm):
     global cs, i
@@ -203,12 +200,16 @@ def occurs(x,t):
         return occurs(x,a) or occurs(x,b)
     elif t[0] == "TV":
         return x == t[1] 
+
 def solve(gamma,x):
     global cs
     # ty is the type to solve for
     ty = gather(gamma,x)
     res = unify(cs,[])
-    return res
+    print("Unification result: {}".format(res))
+    for i,j in res:
+        ty = sub(i,j,ty)
+    return ty
     
 
 dupType = TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s"))))
@@ -217,16 +218,20 @@ addType = TArr(Stack(T("Int"),Stack(T("Int"),TV("s"))),
 dropType = TArr(Stack(TV("a"),TV("s")),TV("s"))
 
 stdEnv = [("dup", dupType), ("add",addType),("drop",dropType)]
+
 # print("Lookup: {}".format(lookup("add", stdEnv)))
 # print(TArr(Stack(TV("a"),TV("s")),Stack(TV("a"),Stack(TV("a"),TV("s")))))
 # print("freeVars(dupType): ", freeVars(dupType))
 # print("Rename: ", rename(dupType,freeVars(dupType)))
 
-print("Gather: ", gather(stdEnv,Cmd("dup",LitI(5,Done()))))
+# print("Gather: ", gather(stdEnv,Cmd("dup",LitI(5,Done()))))
 # print("Gather: ", gather(stdEnv,Cmd("dup",LitI(3,Done()))))
 # print("Gather: ", gather(stdEnv,Cmd("add", LitI(5,LitI(3,Done())))))
 
-print("Constraints after gathering:")
-for i in cs:
-    print(i)
-print("Unification result: ", unify(cs,[]))
+# print("Constraints after gathering:")
+# for i in cs:
+#     print(i)
+
+ex1 = Cmd("add",LitI(5,LitI(3,Done())))
+ex2 = Cmd("dup",LitI(5,Done()))
+print("Final result: ", solve(stdEnv,ex2))
